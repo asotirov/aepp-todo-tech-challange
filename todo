@@ -1,0 +1,32 @@
+// interface helper for todo list workshop
+// sophia docs: https://github.com/aeternity/protocol/blob/master/contracts/sophia.md
+contract ToDoList =
+  record task = { name: string, completed: bool, status: string }
+  record state = { task_completed: map(int, bool),
+    task_names: map(int, string),
+    task_statuses: map(int, string),
+    tasks_count: int }
+
+  public entrypoint init() ={ 
+    tasks_count = 0,
+    task_completed= {},
+    task_names= {},
+    task_statuses={} }
+
+  stateful entrypoint add_task(task_name : string) =
+    put(state{ task_completed[state.tasks_count] = false })
+    put(state{ task_names[state.tasks_count] = task_name })
+    put(state{ task_statuses[state.tasks_count] = "new" })
+    put(state{ tasks_count = state.tasks_count + 1 })
+     
+  stateful entrypoint set_task_completed(task_id: int) =
+    put(state{ task_completed[task_id] = true})
+  
+  stateful entrypoint set_task_status(task_id: int, status: string) =
+    put(state{ task_statuses[task_id] = status})
+  
+  function get_task(index: int) =
+    { name = state.task_names[index], completed = state.task_completed[index], status = state.task_statuses[index] }
+  
+  entrypoint get_tasks() : map(int, task) =
+    Map.from_list([(x, get_task(x)) | x <- [0.. state.tasks_count-1 ]])
